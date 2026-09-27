@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import '@maxgraph/core/css/common.css';
 import { DrawioController } from '../drawio/DrawioController';
+import { Icon } from './Icon';
 
 interface MaxGraphCanvasProps {
   onReady(controller: DrawioController): void;
@@ -32,6 +33,7 @@ export function MaxGraphCanvas({
       <div className="canvas-rulers canvas-rulers--y" aria-hidden="true" />
       <div ref={containerRef} className="graph-canvas" tabIndex={0} />
       <div className="canvas-corner" aria-hidden="true" />
+      <div className="canvas-infinite-hint"><Icon name="hand" /> Infinite canvas · use Pan to explore</div>
     </div>
   );
 }

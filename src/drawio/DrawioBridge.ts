@@ -1,6 +1,7 @@
 import type { Cell } from '@maxgraph/core';
 import type { PointerPosition } from '../gestures/gestureTypes';
 import type { AirDrawingKind } from '../drawing/AirStrokeRecognizer';
+import type { DiagramExportFormat } from '../export/diagramExport';
 
 export type DiagramTool = 'pointer' | 'arrow' | 'connector' | 'pan';
 export type ShapeKind = 'rectangle' | 'ellipse' | 'text';
@@ -29,5 +30,6 @@ export interface DrawioBridge {
   zoomOut(): void;
   zoomAtClientPoint(position: PointerPosition, factor: number): boolean;
   resetZoom(): void;
+  exportDiagram(format: DiagramExportFormat): Promise<string>;
   destroy(): void;
 }

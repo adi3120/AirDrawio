@@ -17,6 +17,13 @@ import type { AirDrawingResult, DiagramTool, DrawioBridge, ShapeKind } from './D
 import type { PointerPosition } from '../gestures/gestureTypes';
 import { snapToNearestPerimeter, type PerimeterAnchor } from './perimeterAnchor';
 import { recognizeAirStroke, simplifyStroke } from '../drawing/AirStrokeRecognizer';
+import {
+  createExportFileName,
+  serializeDrawioFile,
+  type DiagramExportFormat,
+} from '../export/diagramExport';
+import { createDiagramSvg, downloadBlob, rasterizeDiagram } from '../export/rasterExport';
+import { getInfiniteGridCss } from './infiniteCanvas';
 
 const NODE_STYLE: CellStyle = {
   rounded: true,
@@ -123,6 +130,12 @@ export class DrawioController implements DrawioBridge {
     source: HTMLDivElement;
     target: HTMLDivElement;
   } | null = null;
+  private readonly viewTransformListener = () => this.updateInfiniteCanvasGrid();
+  private readonly panPreviewListener = () => {
+    const panning = this.graph.getPlugin<PanningHandler>('PanningHandler');
+    this.updateInfiniteCanvasGrid(panning?.dx ?? 0, panning?.dy ?? 0);
+  };
+  private readonly panEndListener = () => this.updateInfiniteCanvasGrid();
 
   private readonly linePointerDown = (event: PointerEvent) => {
     if (event.button !== 0 || !event.isPrimary) return;
@@ -222,6 +235,14 @@ export class DrawioController implements DrawioBridge {
     this.graph = new Graph(container, undefined, [...getDefaultPlugins(), RubberBandHandler]);
 
     this.configureGraph();
+    const view = this.graph.getView();
+    view.addListener(InternalEvent.SCALE, this.viewTransformListener);
+    view.addListener(InternalEvent.TRANSLATE, this.viewTransformListener);
+    view.addListener(InternalEvent.SCALE_AND_TRANSLATE, this.viewTransformListener);
+    const panning = this.graph.getPlugin<PanningHandler>('PanningHandler');
+    panning?.addListener(InternalEvent.PAN, this.panPreviewListener);
+    panning?.addListener(InternalEvent.PAN_END, this.panEndListener);
+    this.updateInfiniteCanvasGrid();
     // Marquee selection is intended for movable diagram objects. Selecting the
     // connector edges between them as extra cells can make a group drag alter
     // edge geometry independently of its endpoints.
@@ -262,6 +283,9 @@ export class DrawioController implements DrawioBridge {
     this.graph.setConnectable(false);
     this.graph.setAllowDanglingEdges(true);
     this.graph.setPanning(true);
+    // Translate the graph view instead of scrolling a finite HTML element.
+    // This gives the workspace no left/right/top/bottom boundary.
+    this.graph.useScrollbarsForPanning = false;
     this.graph.setTooltips(true);
     this.graph.setGridEnabled(true);
     this.graph.setGridSize(16);
@@ -282,6 +306,27 @@ export class DrawioController implements DrawioBridge {
 
     const panning = this.graph.getPlugin<PanningHandler>('PanningHandler');
     if (panning) panning.useLeftButtonForPanning = false;
+  }
+
+  private updateInfiniteCanvasGrid(previewX = 0, previewY = 0): void {
+    const view = this.graph.getView();
+    const translate = view.getTranslate();
+    const grid = getInfiniteGridCss(
+      this.graph.getGridSize(),
+      view.getScale(),
+      translate.x,
+      translate.y,
+      previewX,
+      previewY,
+    );
+    const shell = this.container.closest<HTMLElement>('.canvas-shell');
+    const style = shell?.style ?? this.container.style;
+    style.setProperty('--canvas-grid-size', grid.gridSize);
+    style.setProperty('--canvas-grid-x', grid.gridX);
+    style.setProperty('--canvas-grid-y', grid.gridY);
+    style.setProperty('--canvas-ruler-size', grid.rulerSize);
+    style.setProperty('--canvas-ruler-x', grid.rulerX);
+    style.setProperty('--canvas-ruler-y', grid.rulerY);
   }
 
   private seedDiagram(): void {
@@ -926,6 +971,26 @@ export class DrawioController implements DrawioBridge {
     this.graph.zoomActual();
   }
 
+  async exportDiagram(format: DiagramExportFormat): Promise<string> {
+    if (this.graph.isEditing()) this.graph.stopEditing(false);
+    const fileName = createExportFileName(format);
+    if (format === 'drawio') {
+      const root = this.graph.getDataModel().getRoot();
+      if (!root) throw new Error('The diagram model is empty.');
+      const xml = serializeDrawioFile(root);
+      downloadBlob(
+        new Blob([xml], { type: 'application/vnd.jgraph.mxfile;charset=utf-8' }),
+        fileName,
+      );
+      return fileName;
+    }
+
+    const svg = createDiagramSvg(this.graph);
+    const image = await rasterizeDiagram(svg, format);
+    downloadBlob(image, fileName);
+    return fileName;
+  }
+
   prepareGestureTestFixture(): GestureTestFixture {
     this.clearGestureTestFixture();
     const parent = this.graph.getDefaultParent();
@@ -1124,6 +1189,11 @@ export class DrawioController implements DrawioBridge {
     this.graph.getDataModel().removeListener(this.undoListener);
     this.graph.getView().removeListener(this.undoListener);
     this.graph.getSelectionModel().removeListener(this.selectionListener);
+    const view = this.graph.getView();
+    view.removeListener(this.viewTransformListener);
+    const panning = this.graph.getPlugin<PanningHandler>('PanningHandler');
+    panning?.removeListener(this.panPreviewListener);
+    panning?.removeListener(this.panEndListener);
     this.undoManager.destroy();
     this.graph.destroy();
   }

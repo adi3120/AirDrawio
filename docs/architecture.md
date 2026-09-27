@@ -52,10 +52,15 @@ sequenceDiagram
 - `cursor/CursorController.ts` updates the high-frequency cursor DOM outside React rendering.
 - `drawio/PointerEventBridge.ts` converts semantic actions to pointer input.
 - `drawio/DrawioController.ts` configures maxGraph and creates exact-side voice connectors using persistent entry/exit anchors.
+- `export/diagramExport.ts` converts the object-style maxGraph model into diagrams.net-compatible legacy `mxGraphModel` XML.
+- `export/rasterExport.ts` paints clean graph states into SVG before browser-local PNG or JPEG encoding.
+- `drawio/infiniteCanvas.ts` keeps the grid and rulers aligned with scale, committed translation, and live pan previews.
 
 ## High-frequency data
 
 Landmarks and cursor position are processed in `requestAnimationFrame` using controller objects and refs. React state is updated at a lower cadence for human-readable status displays. This avoids re-rendering the application for every camera frame.
+
+The graph uses view translation rather than container scroll offsets for panning. This removes finite HTML scroll boundaries while preserving exact model coordinates for creating, pasting, connecting, zooming, and exporting cells.
 
 ## Cleanup and failure behavior
 

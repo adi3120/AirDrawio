@@ -21,7 +21,11 @@ export type IconName =
   | 'fit'
   | 'trash'
   | 'spark'
-  | 'chevron';
+  | 'chevron'
+  | 'chevronDown'
+  | 'download'
+  | 'file'
+  | 'image';
 
 interface IconProps extends SVGProps<SVGSVGElement> {
   name: IconName;
@@ -72,6 +76,14 @@ export function Icon({ name, ...props }: IconProps) {
         return <><path d="m12 2 1.3 4.7L18 8l-4.7 1.3L12 14l-1.3-4.7L6 8l4.7-1.3L12 2Z" /><path d="m19 14 .7 2.3L22 17l-2.3.7L19 20l-.7-2.3L16 17l2.3-.7L19 14Z" /></>;
       case 'chevron':
         return <path d="m9 18 6-6-6-6" />;
+      case 'chevronDown':
+        return <path d="m6 9 6 6 6-6" />;
+      case 'download':
+        return <><path d="M12 3v12m-5-5 5 5 5-5" /><path d="M4 19h16" /></>;
+      case 'file':
+        return <><path d="M6 2h8l4 4v16H6V2Z" /><path d="M14 2v5h5M9 12h6m-6 4h6" /></>;
+      case 'image':
+        return <><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="8.5" cy="9" r="1.5" /><path d="m4 17 5-5 3.5 3 2.5-2 5 4" /></>;
     }
   })();
 

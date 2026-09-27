@@ -66,7 +66,7 @@ input:focus-visible,
   position: relative;
   z-index: 30;
   display: grid;
-  grid-template-columns: 220px minmax(180px, 1fr) auto auto 190px;
+  grid-template-columns: 220px minmax(150px, 1fr) auto auto auto 190px;
   align-items: center;
   min-height: 64px;
   padding: 0 16px 0 20px;
@@ -275,6 +275,112 @@ input:focus-visible,
 .test-launch:disabled {
   opacity: .45;
   cursor: not-allowed;
+}
+
+.export-menu {
+  position: relative;
+  margin-left: 10px;
+}
+
+.export-menu__trigger {
+  height: 34px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #2a3540;
+  border-radius: 10px;
+  color: #a7b5c0;
+  background: #10171e;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.export-menu__trigger > svg:first-child {
+  width: 16px;
+  color: var(--teal);
+}
+
+.export-menu__trigger > svg:last-child {
+  width: 12px;
+  transition: transform .16s ease;
+}
+
+.export-menu.is-open .export-menu__trigger {
+  color: #e6fffb;
+  border-color: rgba(94, 234, 212, .38);
+  background: rgba(45, 212, 191, .09);
+}
+
+.export-menu.is-open .export-menu__trigger > svg:last-child {
+  transform: rotate(180deg);
+}
+
+.export-menu__trigger:disabled {
+  opacity: .45;
+  cursor: wait;
+}
+
+.export-menu__popover {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + 9px);
+  right: 0;
+  width: 220px;
+  padding: 8px;
+  border: 1px solid #31404c;
+  border-radius: 13px;
+  background: rgba(13, 20, 27, .98);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, .48);
+  backdrop-filter: blur(18px);
+}
+
+.export-menu__popover > span {
+  display: block;
+  padding: 5px 8px 8px;
+  color: #718391;
+  font: 500 9px/1 DM Mono, monospace;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.export-menu__popover button {
+  width: 100%;
+  min-height: 48px;
+  padding: 7px 9px;
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 8px;
+  align-items: center;
+  border: 0;
+  border-radius: 9px;
+  color: #dce6ee;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.export-menu__popover button:hover,
+.export-menu__popover button:focus-visible {
+  background: #18232c;
+}
+
+.export-menu__popover button svg {
+  grid-row: 1 / 3;
+  width: 20px;
+  color: var(--teal);
+}
+
+.export-menu__popover button strong {
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.export-menu__popover button small {
+  color: #768896;
+  font-size: 10px;
 }
 
 .topbar__status {
@@ -490,8 +596,8 @@ input:focus-visible,
   height: 22px;
   border-bottom: 1px solid #cbd5de;
   background-image: repeating-linear-gradient(90deg, transparent 0 15px, #aab6c1 15px 16px, transparent 16px 79px, #8493a1 79px 80px);
-  background-size: 80px 8px;
-  background-position: 0 14px;
+  background-size: var(--canvas-ruler-size, 80px) 8px;
+  background-position: var(--canvas-ruler-x, 0) 14px;
   background-repeat: repeat-x;
 }
 
@@ -502,8 +608,8 @@ input:focus-visible,
   width: 22px;
   border-right: 1px solid #cbd5de;
   background-image: repeating-linear-gradient(0deg, transparent 0 15px, #aab6c1 15px 16px, transparent 16px 79px, #8493a1 79px 80px);
-  background-size: 8px 80px;
-  background-position: 14px 0;
+  background-size: 8px var(--canvas-ruler-size, 80px);
+  background-position: 14px var(--canvas-ruler-y, 0);
   background-repeat: repeat-y;
 }
 
@@ -522,14 +628,38 @@ input:focus-visible,
 .graph-canvas {
   position: absolute;
   inset: 22px 0 0 22px;
-  overflow: auto;
+  overflow: hidden;
   cursor: default;
   background-color: var(--canvas);
   background-image: radial-gradient(circle, #c7d1db 1px, transparent 1.1px);
-  background-size: 16px 16px;
-  background-position: -1px -1px;
+  background-size: var(--canvas-grid-size, 16px) var(--canvas-grid-size, 16px);
+  background-position: var(--canvas-grid-x, -1px) var(--canvas-grid-y, -1px);
   color: #14202b;
   touch-action: none;
+}
+
+.canvas-infinite-hint {
+  position: absolute;
+  z-index: 6;
+  right: 12px;
+  bottom: 10px;
+  padding: 6px 9px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(100, 116, 139, .2);
+  border-radius: 8px;
+  color: #728190;
+  background: rgba(248, 250, 252, .82);
+  box-shadow: 0 4px 15px rgba(15, 23, 42, .08);
+  font: 500 9px/1 DM Mono, monospace;
+  pointer-events: none;
+}
+
+.canvas-infinite-hint svg {
+  width: 13px;
+  height: 13px;
+  color: #0f9f91;
 }
 
 .graph-canvas.is-pan-mode,
@@ -2676,7 +2806,8 @@ input:focus-visible,
 
 @media (max-width: 1220px) {
   .workspace { grid-template-columns: 76px minmax(0, 1fr) 258px; }
-  .topbar { grid-template-columns: 190px minmax(150px, 1fr) auto auto 165px; }
+  .topbar { grid-template-columns: 190px minmax(110px, 1fr) auto auto auto 165px; }
+  .export-menu__trigger { padding: 0 8px; }
   .test-launch { padding: 0 9px; }
   .gesture-legend span:last-child { display: none; }
 }

@@ -15,6 +15,8 @@
 - Added exact top/bottom/left/right voice connector anchors with a visible latched-source marker.
 - Added an optional native macOS bridge that maps “Rename” and “Done” to Wispr Flow's Fn hotkeys while editing the real inline label field.
 - Added Air Pen drawing with adaptive thumb calibration plus automatic rectangle, ellipse, line, connector, text, and smoothed-curve cleanup.
+- Added editable uncompressed Draw.io export plus tightly cropped high-resolution PNG and JPEG downloads.
+- Replaced finite scroll boundaries with translation-based infinite canvas panning and a synchronized grid/ruler background.
 - Added synthetic gesture, smoothing, and coordinate tests.
 - Added README and architecture, gesture model, and development documentation.
 - Added automated coverage for local voice decoding, Air Pen calibration/hysteresis, drawing recognition, gesture zoom, clipboard behavior, and connector geometry.

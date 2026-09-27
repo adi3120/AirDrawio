@@ -14,6 +14,8 @@ The editor is built on [maxGraph](https://maxgraph.github.io/maxGraph/), the mai
 - Smooth editable curves for strokes that are intentionally curved
 - Voice-controlled shape creation, dragging, multi-selection, deletion, copy, cut, and paste
 - Connector arrows snapped to the nearest point on a shape perimeter
+- Editable Draw.io, high-resolution PNG, and JPEG export
+- Infinite canvas panning with a grid that continues in every direction
 - Point-relative gesture zoom with a deliberate reset phase between strokes
 - Optional Wispr Flow integration for free-form shape renaming on macOS
 - Black camera preview showing only the hand skeleton
@@ -79,6 +81,20 @@ Thumb detection is normalized by palm size, prefers orientation-independent 3D l
 Closed shapes are cleaned into rectangles or ellipses. Straight strokes become lines; arrow-like strokes become connector arrows; text-like marks become editable text. Deliberately curved strokes remain curves and are smoothed instead of being straightened.
 
 For best results, keep the full hand visible, make the open/closed difference clear, and draw objects at least a few centimetres wide on screen.
+
+## Exporting diagrams
+
+Choose **Export** in the top bar and select one of these formats:
+
+- **Draw.io** downloads an editable, uncompressed `.drawio` file using the native `mxGraphModel` structure. Open it in the diagrams.net web app or desktop application and continue editing its shapes, labels, geometry, styles, and connectors.
+- **PNG** downloads a tightly cropped, lossless image at up to 2× resolution.
+- **JPEG** downloads the same content crop with a white background and high-quality compression.
+
+Image export includes the complete diagram rather than only the portion currently visible on screen. The infinite canvas, rulers, selection handles, virtual cursor, camera, and other editor controls are excluded.
+
+## Infinite canvas
+
+Choose the **Pan** tool or press `H`, then drag anywhere on empty canvas. Panning uses the graph's coordinate translation rather than a finite browser scroll area, so you can continue in any direction without reaching an edge. The dot grid and rulers move with the diagram, and shapes created or pasted after panning use the correct translated coordinates.
 
 ## Voice controls
 
@@ -175,6 +191,7 @@ flowchart LR
   Pointer --> Actions[Pointer and graph actions]
   Commands --> Actions
   Actions --> Graph[maxGraph editor]
+  Graph --> Export[Draw.io / PNG / JPEG]
   Wispr[Optional local Wispr bridge] --> Labels[Inline shape editor]
   Labels --> Graph
 ```

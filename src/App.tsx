@@ -48,6 +48,8 @@ import {
 } from './voice/VoiceInputMonitor';
 import type { VoiceAnchor } from './drawio/DrawioController';
 import { VoiceGraphVisualizer } from './ui/VoiceGraphVisualizer';
+import { ExportMenu } from './ui/ExportMenu';
+import type { DiagramExportFormat } from './export/diagramExport';
 import {
   openAccessibilitySettings,
   triggerWisprHotkey,
@@ -117,6 +119,7 @@ export default function App() {
   const [zoomPhase, setZoomPhase] = useState<ZoomGesturePhase>('ready');
   const [airDrawPhase, setAirDrawPhase] = useState<AirDrawPhase>('off');
   const [airStroke, setAirStroke] = useState<PointerPosition[]>([]);
+  const [exporting, setExporting] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const previewRef = useRef<CameraPreviewHandle>(null);
@@ -621,6 +624,20 @@ export default function App() {
     announce(`${shape === 'text' ? 'Text' : shape} added at the center of the canvas.`);
   }, [announce, controller]);
 
+  const handleExport = useCallback(async (format: DiagramExportFormat) => {
+    if (!controller || exporting) return;
+    setExporting(true);
+    announce(`Preparing ${format === 'drawio' ? 'editable Draw.io' : format.toUpperCase()} export…`);
+    try {
+      const fileName = await controller.exportDiagram(format);
+      announce(`${fileName} downloaded.`);
+    } catch (error) {
+      announce(error instanceof Error ? error.message : 'The diagram could not be exported.');
+    } finally {
+      setExporting(false);
+    }
+  }, [announce, controller, exporting]);
+
   const beginCommandDictation = useCallback(() => {
     if (!controller) return;
     const hovered = pointerRef.current
@@ -1043,6 +1060,11 @@ export default function App() {
             <span className={mode === 'gesture' ? 'is-live' : ''} />
           </button>
         </div>
+        <ExportMenu
+          disabled={!controller}
+          busy={exporting}
+          onExport={(format) => void handleExport(format)}
+        />
         <button className={`test-launch ${testOpen ? 'is-active' : ''}`} onClick={() => { setTrainerOpen(false); setTestOpen(true); }} disabled={!controller}>
           <Icon name="bug" /> Test controls
         </button>
